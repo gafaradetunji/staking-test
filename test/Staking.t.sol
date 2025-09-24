@@ -195,54 +195,57 @@ contract StakingTest is Test {
         assertGt(afterBal, beforeBal, "bob's new balance should be more");
         vm.stopPrank();
     }
-}
 
-function test_lastTimeRewardApplicable() public {
-    vm.prank(owner);
-    staking.setRewardsDuration(1000);
-    deal(address(rewardToken), owner, 2 ether);
-    vm.startPrank(owner);
-    IERC20(address(rewardToken)).transfer(address(staking), 2 ether);
-    staking.notifyRewardAmount(2 ether);
+    function test_lastTimeRewardApplicable() public {
+        vm.prank(owner);
+        staking.setRewardsDuration(1000);
+        deal(address(rewardToken), owner, 2 ether);
+        vm.startPrank(owner);
+        IERC20(address(rewardToken)).transfer(address(staking), 2 ether);
+        staking.notifyRewardAmount(2 ether);
 
-    uint256 finishAt = staking.finishAt();
-    vm.warp(finishAt + 1);
-    assertEq(
-        staking.lastTimeRewardApplicable(),
-        finishAt,
-        "Should return the time if it is passed"
-    );
-}
+        uint256 finishAt = staking.finishAt();
+        vm.warp(finishAt + 1);
+        assertEq(
+            staking.lastTimeRewardApplicable(),
+            finishAt,
+            "Should return the time if it is passed"
+        );
+    }
 
-function test_rewardPerToken_noSupply() public {
-    uint256 rpt = staking.rewardPerToken();
-    assertEq(
-        rpt,
-        0,
-        "With no staking supply, should return stored rewardPerToken"
-    );
-}
+    function test_rewardPerToken_noSupply() public {
+        uint256 rpt = staking.rewardPerToken();
+        assertEq(
+            rpt,
+            0,
+            "With no staking supply, should return stored rewardPerToken"
+        );
+    }
 
-function test_earned_function() public {
-    vm.prank(owner);
-    staking.setRewardsDuration(1000);
-    deal(address(rewardToken), owner, 100 ether);
-    vm.startPrank(owner);
-    IERC20(address(rewardToken)).transfer(address(staking), 100 ether);
-    staking.notifyRewardAmount(100 ether);
-    vm.stopPrank();
+    function test_earned_function() public {
+        vm.prank(owner);
+        staking.setRewardsDuration(1000);
+        deal(address(rewardToken), owner, 100 ether);
+        vm.startPrank(owner);
+        IERC20(address(rewardToken)).transfer(address(staking), 100 ether);
+        staking.notifyRewardAmount(100 ether);
+        vm.stopPrank();
 
-    deal(address(stakingToken), bob, 2 ether);
-    vm.startPrank(bob);
-    IERC20(address(stakingToken)).approve(address(staking), type(uint256).max);
-    staking.stake(2 ether);
+        deal(address(stakingToken), bob, 2 ether);
+        vm.startPrank(bob);
+        IERC20(address(stakingToken)).approve(
+            address(staking),
+            type(uint256).max
+        );
+        staking.stake(2 ether);
 
-    vm.warp(block.timestamp + 200);
-    uint256 reward = staking.earned(bob);
-    assertGt(
-        reward,
-        0,
-        "reward should be greater than zero after time elapses"
-    );
-    vm.stopPrank();
+        vm.warp(block.timestamp + 200);
+        uint256 reward = staking.earned(bob);
+        assertGt(
+            reward,
+            0,
+            "reward should be greater than zero after time elapses"
+        );
+        vm.stopPrank();
+    }
 }
